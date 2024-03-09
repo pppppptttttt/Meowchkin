@@ -37,8 +37,8 @@ void GuiCardSpan::add_card(std::string_view path_to_texture) {
     raylib::Texture tex = raylib::Texture(img);
     tex.GenMipmaps();
     // raylib::Rectangle orig_rec = raylib::Rectangle(
-    //     (m_window->GetWidth() - orig_img.width) / 2, (m_window->GetHeight() - orig_img.height) / 2,
-    //     orig_img.width, orig_img.height
+    //     (m_window->GetWidth() - orig_img.width) / 2, (m_window->GetHeight() - orig_img.height) /
+    //     2, orig_img.width, orig_img.height
     // );
     add_card(
         {raylib::Rectangle(m_window->GetWidth(), 0, 0, 0), raylib::Vector2(0), std::move(tex),
@@ -76,23 +76,23 @@ void GuiCardSpan::remove_card() {
     recalculate_card_rects();
 }
 
-void GuiCardSpan::draw_cards(float frame_time, bool is_pause) {
-    if (is_pause || raylib::Mouse::IsButtonReleased(MOUSE_BUTTON_LEFT)) {
+void GuiCardSpan::draw_cards(float frame_time, bool can_be_dragged) {
+    if (!can_be_dragged || raylib::Mouse::IsButtonReleased(MOUSE_BUTTON_LEFT)) {
         m_selected = m_cards.end();
     }
-    if (is_pause || ((raylib::Mouse::IsButtonPressed(MOUSE_BUTTON_LEFT) ||
-                      raylib::Mouse::IsButtonPressed(MOUSE_BUTTON_RIGHT)) &&
-                     !m_dropdown_menu.mouse_in_menu())) {
+    if (!can_be_dragged || ((raylib::Mouse::IsButtonPressed(MOUSE_BUTTON_LEFT) ||
+                             raylib::Mouse::IsButtonPressed(MOUSE_BUTTON_RIGHT)) &&
+                            !m_dropdown_menu.mouse_in_menu())) {
         m_dropdown_menu.detach_card();
     }
     for (auto card_it = m_cards.begin(); card_it != m_cards.end(); card_it++) {
         if (card_it->border.CheckCollision(raylib::Mouse::GetPosition())) {
-            if (!is_pause && m_selected == m_cards.end() &&
+            if (can_be_dragged && m_selected == m_cards.end() &&
                 raylib::Mouse::IsButtonDown(MOUSE_BUTTON_LEFT) &&
                 !m_dropdown_menu.mouse_in_menu()) {
                 m_selected = card_it;
                 m_dropdown_menu.detach_card();
-            } else if (!is_pause && m_selected == m_cards.end() && raylib::Mouse::IsButtonPressed(MOUSE_RIGHT_BUTTON)) {
+            } else if (can_be_dragged && m_selected == m_cards.end() && raylib::Mouse::IsButtonPressed(MOUSE_RIGHT_BUTTON)) {
                 m_dropdown_menu.attach_card(card_it, raylib::Mouse::GetPosition());
             }
         }
