@@ -48,6 +48,7 @@ endif()
 add_library(mainmenu-scene SHARED src/scenes/main_menu_scene.cpp src/scenes/scene.cpp)
 target_link_libraries(mainmenu-scene ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} raylib raylib_cpp)
 
+
 add_library(game-scene SHARED src/scenes/game_view.cpp
                               src/scenes/scene.cpp
                               src/scenes/gui_card_span.cpp

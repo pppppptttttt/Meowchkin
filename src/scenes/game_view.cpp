@@ -7,6 +7,9 @@
 #include "gui_text_chat.hpp"
 #include "gui_usernames_box.hpp"
 #define RAYGUI_IMPLEMENTATION
+#include "client.hpp"
+#include "message_types.hpp"
+#include "paths_to_binaries.hpp"
 #include "raygui.h"
 #include "raylib-cpp.hpp"
 #include "scene.hpp"
@@ -17,8 +20,6 @@ class GameView : public Scene {
 private:
     static constexpr int button_width = 300;
     static constexpr int button_height = 40;
-    static constexpr const char *background_image_path = "";
-    static constexpr const char *board_image_path = "bin/imgs/kitik3.png";
     const raylib::Color background_color = raylib::Color(77, 120, 204, 255);
 
     GuiBoard m_board;
@@ -65,10 +66,10 @@ protected:
 
 public:
     explicit GameView() {
-        GuiLoadStyle("bin/gui_styles/meow.rgs");
-        GuiSetFont(LoadFont("bin/fonts/mono.ttf"));
+        GuiLoadStyle(gui_style_path);
+        GuiSetFont(LoadFont(gui_font_path));
         GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
-        for (const auto &entry : std::filesystem::directory_iterator("bin/imgs/cards/original/")) {
+        for (const auto &entry : std::filesystem::directory_iterator(cards_directory_path)) {
             if (entry.path().extension() == ".png") {
                 m_card_image_paths.emplace_back(entry);
             }
@@ -79,13 +80,25 @@ public:
         if (m_window == nullptr) {
             throw std::runtime_error("invalid attached window!");
         }
-        if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_ENTER)) {
-            m_show_chat = !m_show_chat;
-        }
 
+        static bool receieved47 = false;
+        if (auto action = m_client->receive_action(); action.has_value()) {
+            receieved47 = !receieved47;
+            std::cout << "received " << action->card_filename << '\n';
+            m_board.add_card(action->card_filename);
+        }
+      
         m_background.Draw();
         m_board.draw(m_window->GetFrameTime(), !m_should_draw_pause);
         m_player_hand.draw_cards(m_window->GetFrameTime(), !m_should_draw_pause);
+      
+        if (receieved47) {
+            m_blur.Draw();
+        }
+
+        if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_ENTER)) {
+            m_show_chat = !m_show_chat;
+        }
 
         if (!m_should_draw_pause && GuiButton({0, 0, 40, 40}, "-") &&
             m_player_hand.card_count() > 0) {
@@ -118,13 +131,25 @@ public:
             m_blur.Draw();
             draw_pause_menu();
         }
+
+        if (IsKeyPressed(KEY_SPACE)) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> distrib(0, m_card_image_paths.size() - 1);
+            int random_index = distrib(gen);
+            for (auto &info : m_client->get_players_info()) {
+                m_client->send_action(network::Action(
+                    m_card_image_paths[random_index].c_str(), m_client->get_id_of_client(), info.id
+                ));
+            }
+        }
     }
 
 private:
     void setup_background() {
         raylib::Image background_image;
         try {
-            background_image.Load(background_image_path);
+            background_image.Load(gameview_background_image_path);
             background_image.Resize(m_window->GetWidth(), m_window->GetHeight());
         } catch (const raylib::RaylibException &) {
             background_image =

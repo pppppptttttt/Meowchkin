@@ -3,10 +3,11 @@
 
 #include <boost/config.hpp>
 #include <memory>
-#include <iostream>
 #include "enum_array.hpp"
 #include "noncopyable.hpp"
 #include "raylib-cpp.hpp"
+#include "server.hpp"
+#include "client.hpp"
 
 namespace meow {
 
@@ -27,6 +28,8 @@ protected:
     }
 
 public:
+    network::Client *m_client = nullptr;
+    network::Server *m_server = nullptr;
     explicit Scene() = default;
     virtual void draw() = 0;
 
