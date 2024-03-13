@@ -15,15 +15,10 @@ private:
     int m_card_gap = 50;
     raylib::Window *m_window = nullptr;
     std::list<GuiCard> m_cards;
-    std::list<RemovedGuiCard> m_removed_cards;
+    std::list<std::pair<GuiCard, double>> m_removed_cards;
     std::list<GuiCard>::iterator m_selected = m_cards.end();
     raylib::Rectangle m_span_borders;
     raylib::Vector2 m_offset;
-
-    struct RemovedGuiCard {
-        GuiCard card;
-        double fading_coeff;
-    };
 
     class DropDownMenu {
     private:
@@ -68,6 +63,10 @@ private:
                 m_parental_span.remove_card(m_card_iter);
                 m_card_iter = m_cards.end();
             }
+            // if (pressed[Button::INSPECT]) {
+            //     std::swap(m_card_iter->full_sized_texture, m_card_iter->texture);
+            //     std::swap(m_card_iter->full_sized_border, m_card_iter->border);
+            // }
         }
 
         void detach_card() noexcept {
