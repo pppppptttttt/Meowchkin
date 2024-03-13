@@ -4,6 +4,8 @@
 #include "gui_board.hpp"
 #include "gui_card_span.hpp"
 #define RAYGUI_IMPLEMENTATION
+#include "client.hpp"
+#include "message_types.hpp"
 #include "paths_to_binaries.hpp"
 #include "raygui.h"
 #include "raylib-cpp.hpp"
@@ -62,10 +64,19 @@ public:
         if (!m_window) {
             throw std::runtime_error("invalid attached window!");
         }
+        static bool receieved47 = false;
+        if (auto action = m_client->receive_action(); action.has_value()) {
+            receieved47 = !receieved47;
+            std::cout << "received " << action->card_filename << '\n';
+            m_board.add_card(action->card_filename);
+        }
         m_background.Draw();
 
         m_board.draw(m_window->GetFrameTime(), m_should_draw_pause);
         m_player_hand.draw_cards(m_window->GetFrameTime(), m_should_draw_pause);
+        if (receieved47) {
+            m_blur.Draw();
+        }
 
         if (!m_should_draw_pause && GuiButton({0, 0, 40, 40}, "-") &&
             m_player_hand.card_count() > 0) {
@@ -86,6 +97,18 @@ public:
         } else if (m_should_draw_pause) {
             m_blur.Draw();
             draw_pause_menu();
+        }
+
+        if (IsKeyPressed(KEY_SPACE)) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> distrib(0, m_card_image_paths.size() - 1);
+            int random_index = distrib(gen);
+            for (auto &info : m_client->get_players_info()) {
+                m_client->send_action(network::Action(
+                    m_card_image_paths[random_index].c_str(), m_client->get_id_of_client(), info.id
+                ));
+            }
         }
     }
 
