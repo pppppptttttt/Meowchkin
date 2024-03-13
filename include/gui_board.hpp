@@ -25,6 +25,16 @@ public:
 
     void setup(raylib::Window *window, GuiCardSpan *hand);
     void draw(float frame_time, bool is_pause);
+
+    void add_card(std::string_view card_filename) {
+        m_active_cards.add_card(card_filename);
+    }
+
+    void clear_cards() {
+        while (m_active_cards.card_count() > 0) {
+            m_active_cards.remove_card();
+        }
+    }
 };
 }  // namespace meow
 
