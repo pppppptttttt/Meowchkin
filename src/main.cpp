@@ -11,6 +11,7 @@
 
 void run_bebra(meow::network::Client &client) {
     SetTraceLogLevel(LOG_ERROR);
+
     static constexpr int window_width = 1920;
     static constexpr int window_height = 1080;
     static constexpr const char *window_title = "meow";
@@ -41,7 +42,7 @@ void run_bebra(meow::network::Client &client) {
     while (!window.ShouldClose() && scene_manager->active_scene()->running()) {
         // application response
         {
-            if (IsKeyPressed(KEY_R)) {
+            if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_R)) {
                 main_menu.reload(plugin_names[meow::SceneType::MAIN_MENU]);
                 main_menu->attach_window(&window);
                 scene_manager->set_scene(meow::SceneType::MAIN_MENU, main_menu.get());
@@ -53,7 +54,10 @@ void run_bebra(meow::network::Client &client) {
         // application render
         window.BeginDrawing();
         {
-            window.ClearBackground(RAYWHITE);
+            // if (IsKeyPressed(KEY_R)) {
+            //     meow::play_dice_animation(&window, -4, 8);
+            // }
+            window.ClearBackground(raylib::Color::RayWhite());
             scene_manager->draw_scene();
         }
         window.EndDrawing();

@@ -54,6 +54,7 @@ void GuiCardSpan::add_card(GuiCard &&card) {
 
 void GuiCardSpan::remove_card(std::list<GuiCard>::iterator card_iter) {
     m_removed_cards.push_back({std::move(*card_iter), 0});
+
     m_removed_cards.back().card.target_position =
         raylib::Vector2(-GuiCard::width, -GuiCard::height);
     m_removed_cards.back().fading_coeff = (m_removed_cards.back().card.border.GetPosition() -
@@ -76,23 +77,25 @@ void GuiCardSpan::remove_card() {
     recalculate_card_rects();
 }
 
-void GuiCardSpan::draw_cards(float frame_time, bool is_pause) {
-    if (is_pause || raylib::Mouse::IsButtonReleased(MOUSE_BUTTON_LEFT)) {
+
+void GuiCardSpan::draw_cards(float frame_time, bool can_be_dragged) {
+    if (!can_be_dragged || raylib::Mouse::IsButtonReleased(MOUSE_BUTTON_LEFT)) {
         m_selected = m_cards.end();
     }
-    if (is_pause || ((raylib::Mouse::IsButtonPressed(MOUSE_BUTTON_LEFT) ||
-                      raylib::Mouse::IsButtonPressed(MOUSE_BUTTON_RIGHT)) &&
-                     !m_dropdown_menu.mouse_in_menu())) {
+    if (!can_be_dragged || ((raylib::Mouse::IsButtonPressed(MOUSE_BUTTON_LEFT) ||
+                             raylib::Mouse::IsButtonPressed(MOUSE_BUTTON_RIGHT)) &&
+                            !m_dropdown_menu.mouse_in_menu())) {
         m_dropdown_menu.detach_card();
     }
     for (auto card_it = m_cards.begin(); card_it != m_cards.end(); card_it++) {
         if (card_it->border.CheckCollision(raylib::Mouse::GetPosition())) {
-            if (!is_pause && m_selected == m_cards.end() &&
+
+            if (can_be_dragged && m_selected == m_cards.end() &&
                 raylib::Mouse::IsButtonDown(MOUSE_BUTTON_LEFT) &&
                 !m_dropdown_menu.mouse_in_menu()) {
                 m_selected = card_it;
                 m_dropdown_menu.detach_card();
-            } else if (!is_pause && m_selected == m_cards.end() && raylib::Mouse::IsButtonPressed(MOUSE_RIGHT_BUTTON)) {
+            } else if (can_be_dragged && m_selected == m_cards.end() && raylib::Mouse::IsButtonPressed(MOUSE_RIGHT_BUTTON)) {
                 m_dropdown_menu.attach_card(card_it, raylib::Mouse::GetPosition());
             }
         }
